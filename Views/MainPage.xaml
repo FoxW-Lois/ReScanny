@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+	x:Class="ReScanny.Views.MainPage"
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:camera="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui.Camera"
+	xmlns:models="clr-namespace:ReScanny.Models"
+	xmlns:vm="clr-namespace:ReScanny.ViewModels"
+	x:DataType="vm:MainViewModel"
+	BackgroundColor="#111111"
+	Shell.NavBarIsVisible="False">
+
+	<Grid RowDefinitions="*,Auto,Auto,Auto" RowSpacing="0">
+		<!--  Zone caméra  -->
+		<Grid
+			x:Name="CameraHost"
+			Grid.Row="0"
+			BackgroundColor="#111111"
+			SizeChanged="OnCameraHostSizeChanged">
+
+			<!--  Cadre 3:4 (taille fixée dans le code-behind)  -->
+			<Grid
+				x:Name="CameraFrame"
+				HorizontalOptions="Center"
+				VerticalOptions="Center">
+
+				<camera:CameraView x:Name="Camera" />
+
+				<!--  Contours du cadre  -->
+				<Border
+					BackgroundColor="Transparent"
+					InputTransparent="True"
+					Stroke="White"
+					StrokeThickness="3" />
+			</Grid>
+
+			<!--  Prochain ID + reset  -->
+			<Border
+				Margin="8"
+				Padding="12,0,0,0"
+				BackgroundColor="#99000000"
+				HorizontalOptions="End"
+				StrokeThickness="0"
+				VerticalOptions="Start">
+				<Border.StrokeShape>
+					<RoundRectangle CornerRadius="18" />
+				</Border.StrokeShape>
+
+				<HorizontalStackLayout Spacing="4">
+					<Label
+						FontSize="13"
+						Text="{Binding NextIdText}"
+						TextColor="White"
+						VerticalOptions="Center" />
+
+					<Button
+						Padding="0"
+						BackgroundColor="Transparent"
+						Command="{Binding ResetCounterCommand}"
+						FontSize="18"
+						HeightRequest="36"
+						Text="↺"
+						TextColor="White"
+						WidthRequest="36">
+						<Button.Triggers>
+							<DataTrigger
+								Binding="{Binding CanReset}"
+								TargetType="Button"
+								Value="False">
+								<Setter Property="Opacity" Value="0.4" />
+							</DataTrigger>
+						</Button.Triggers>
+					</Button>
+				</HorizontalStackLayout>
+			</Border>
+		</Grid>
+
+		<!--  Compteur + bouton de capture  -->
+		<Grid
+			Grid.Row="1"
+			Padding="16,12"
+			BackgroundColor="Black"
+			ColumnDefinitions="*,Auto,*">
+
+			<Label
+				Grid.Column="0"
+				FontSize="18"
+				Text="{Binding PhotoCounterText}"
+				TextColor="White"
+				VerticalOptions="Center" />
+
+			<Button
+				x:Name="CaptureButton"
+				Grid.Column="1"
+				BackgroundColor="White"
+				BorderColor="Gray"
+				BorderWidth="4"
+				Clicked="OnCaptureClicked"
+				CornerRadius="36"
+				HeightRequest="72"
+				IsEnabled="{Binding CanTakePhoto}"
+				WidthRequest="72" />
+		</Grid>
+
+		<!--  Miniatures  -->
+		<CollectionView
+			Grid.Row="2"
+			BackgroundColor="#111111"
+			HeightRequest="90"
+			ItemsSource="{Binding Photos}"
+			SelectionMode="None">
+			<CollectionView.ItemsLayout>
+				<LinearItemsLayout ItemSpacing="8" Orientation="Horizontal" />
+			</CollectionView.ItemsLayout>
+
+			<CollectionView.ItemTemplate>
+				<DataTemplate x:DataType="models:CapturedPhoto">
+					<Grid
+						Margin="8,5,0,5"
+						HeightRequest="80"
+						WidthRequest="60">
+						<Image Aspect="AspectFill" Source="{Binding Path}" />
+						<Button
+							Padding="0"
+							BackgroundColor="#CC000000"
+							Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MainViewModel}}, Path=DeletePhotoCommand}"
+							CommandParameter="{Binding .}"
+							CornerRadius="12"
+							FontSize="12"
+							HeightRequest="24"
+							HorizontalOptions="End"
+							Text="✕"
+							TextColor="White"
+							VerticalOptions="Start"
+							WidthRequest="24" />
+					</Grid>
+				</DataTemplate>
+			</CollectionView.ItemTemplate>
+		</CollectionView>
+
+		<!--  Bouton du bas  -->
+		<Button
+			Grid.Row="3"
+			Margin="16,12,16,16"
+			Command="{Binding OpenPreviewCommand}"
+			Text="Aperçu du PDF" />
+
+		<!--  Overlay de preview  -->
+		<Grid
+			Grid.Row="0"
+			Grid.RowSpan="4"
+			Padding="16"
+			BackgroundColor="#EE000000"
+			IsVisible="{Binding IsPreviewVisible}"
+			RowDefinitions="Auto,*,Auto">
+
+			<Label
+				Grid.Row="0"
+				Margin="0,8,0,12"
+				FontSize="18"
+				HorizontalOptions="Center"
+				Text="{Binding PreviewSummary}"
+				TextColor="White" />
+
+			<Image
+				Grid.Row="1"
+				Aspect="AspectFit"
+				Source="{Binding PreviewImage}" />
+
+			<Grid
+				Grid.Row="2"
+				Margin="0,12,0,0"
+				ColumnDefinitions="*,*"
+				ColumnSpacing="12">
+
+				<Button
+					Grid.Column="0"
+					BackgroundColor="#444444"
+					Command="{Binding ClosePreviewCommand}"
+					Text="Retour"
+					TextColor="White" />
+
+				<Button
+					Grid.Column="1"
+					Command="{Binding ValidatePreviewCommand}"
+					Text="Valider le PDF" />
+			</Grid>
+		</Grid>
+	</Grid>
+</ContentPage>
