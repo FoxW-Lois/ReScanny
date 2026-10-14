@@ -19,10 +19,10 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>ReScanny</ApplicationTitle>
+		<ApplicationTitle>Scanny</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.rescanny</ApplicationId>
+		<ApplicationId>com.FoxW_Lois.Scanny</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
