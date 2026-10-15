@@ -38,6 +38,28 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android')) == true">
+		<!-- Package -->
+		<AndroidPackageFormats>apk</AndroidPackageFormats>
+		<AndroidGenerateAppBundle>true</AndroidGenerateAppBundle>
+		<!-- Build -->
+		<AndroidUseAapt2>True</AndroidUseAapt2>
+		<JavaMaximumHeapSize>3G</JavaMaximumHeapSize>
+		<!-- Linking & Trimming -->
+		<PublishTrimmed>True</PublishTrimmed>
+		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
+		<!-- AOT Settings -->
+		<RunAOTCompilation>True</RunAOTCompilation>
+		<AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
+		<EnableLLVM>True</EnableLLVM>
+		<AndroidStripILAfterAOT>True</AndroidStripILAfterAOT>
+		<MauiStripXaml>True</MauiStripXaml>
+		<!-- MultiDex -->
+		<AndroidEnableMultiDex>True</AndroidEnableMultiDex>
+		<!-- Target Runtimes -->
+		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#404040" />
