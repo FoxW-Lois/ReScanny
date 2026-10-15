@@ -34,7 +34,13 @@ public partial class MainPage : ContentPage
 			return;
 		}
 
-		await Camera.StartCameraPreview(CancellationToken.None);
+		var startTask = Camera.StartCameraPreview(CancellationToken.None);
+		var done = await Task.WhenAny(startTask, Task.Delay(8000));
+		if (done != startTask)
+		{
+			await DisplayAlertAsync("Caméra",
+				"La caméra ne répond pas. Veuillez complètement fermer l'application et la rouvrir.", "OK");
+		}
 	}
 
 	protected override void OnDisappearing()
@@ -63,14 +69,24 @@ public partial class MainPage : ContentPage
 		_viewModel.IsBusy = true;
 		try
 		{
-			// Capture (flux JPEG)
-			await using var stream = await Camera.CaptureImage(CancellationToken.None);
+			var stream = await CaptureWithTimeoutAsync();
 
-			// Recadrage 3:4 hors du thread UI
-			var bytes = await Task.Run(() =>
-				ImageHelper.CropToRatio(stream, AppConstants.PhotoAspectRatio));
+			if (stream is null)
+			{
+				await RestartCameraAsync();
+				await DisplayAlertAsync("Caméra",
+					"La mise au point a échoué, la photo n'a pas été prise. Veuillez réessayer.", "OK");
+				return;
+			}
 
-			await _viewModel.AddPhotoAsync(bytes);
+			await using (stream)
+			{
+				// Recadrage 3:4 hors du thread UI
+				var bytes = await Task.Run(() =>
+					ImageHelper.CropToRatio(stream, AppConstants.PhotoAspectRatio));
+
+				await _viewModel.AddPhotoAsync(bytes);
+			}
 		}
 		catch (Exception ex)
 		{
@@ -79,6 +95,41 @@ public partial class MainPage : ContentPage
 		finally
 		{
 			_viewModel.IsBusy = false;
+		}
+	}
+
+	private const int CaptureTimeoutMs = 8000;
+
+	// Retourne null si la capture ne se termine pas dans le délai.
+	private async Task<Stream?> CaptureWithTimeoutAsync()
+	{
+		using var cts = new CancellationTokenSource();
+		var captureTask = Camera.CaptureImage(cts.Token);
+
+		var finished = await Task.WhenAny(captureTask, Task.Delay(CaptureTimeoutMs));
+		if (finished == captureTask)
+			return await captureTask;
+
+		// Délai dépassé : on tente d'annuler, et on libère le flux s'il arrive plus tard.
+		cts.Cancel();
+		_ = captureTask.ContinueWith(
+			t => { if (t.IsCompletedSuccessfully) t.Result.Dispose(); },
+			TaskScheduler.Default);
+
+		return null;
+	}
+
+	private async Task RestartCameraAsync()
+	{
+		try
+		{
+			Camera.StopCameraPreview();
+			await Task.Delay(300);
+			await Camera.StartCameraPreview(CancellationToken.None);
+		}
+		catch
+		{
+			// Si la caméra ne repart pas, l'utilisateur pourra relancer l'application.
 		}
 	}
 }
