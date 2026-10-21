@@ -48,10 +48,10 @@ Vérifier que le fichier `.csproj` contient un groupe de propriétés similaire 
 
 Ouvrir un terminal et se placer dans le répertoire contenant la solution `.sln` ou `.slnx`.
 
-Exécuter la commande suivante en remplaçant `NomProjet.csproj` par le nom du fichier du projet :
+Exécuter la commande suivante :
 
 ```powershell
-dotnet publish .\NomProjet.csproj -f net10.0-android -c Release -p:RuntimeIdentifier=android-arm64
+dotnet publish .\ReScanny.csproj -f net10.0-android -c Release -p:RuntimeIdentifier=android-arm64
 ```
 
 Attendre la fin de la publication.
@@ -62,7 +62,7 @@ Attendre la fin de la publication.
 Les fichiers générés se trouvent dans le répertoire suivant :
 
 ```text
-NomProjet\bin\Release\net10.0-android\android-arm64\publish\
+ReScanny\bin\Release\net10.0-android\android-arm64\publish\
 ```
 
 Deux fichiers `.apk` peuvent être présents. Le fichier APK non signé peut être refusé par Android lors de l'installation.
